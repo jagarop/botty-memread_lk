@@ -1,0 +1,57 @@
+name: Botty - CI
+on: [pull_request]
+jobs:
+  tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Miniconda Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      # TODO: The below setp only chaches conda packages, need to cache pip seperatly
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache if environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: conda-${{ env.CACHE_NUMBER }}-${{hashFiles('environment.yml') }}
+      - name: Cache pip
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache if environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/pip
+          key: pip-${{ env.CACHE_NUMBER }}-${{ hashFiles('environment.yml') }}
+      - name: Install Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.9
+          activate-environment: botty
+          channel-priority: strict
+          environment-file: environment.yml
+          use-only-tar-bz2: true # Needed for caching
+      - name: Activate conda
+        shell: powershell
+        run: |
+          C:\Miniconda\condabin\conda.bat init powershell
+          set PYTHONPATH=./src
+      - name: Pytest & Coverage
+        shell: powershell
+        run: |
+          C:\Miniconda\condabin\conda.bat activate botty
+          python -c "import sys; print(sys.version)"
+          coverage run --source=./src -m pytest -v -s
+      - name: Coverage Report Generation
+        shell: powershell
+        run: |
+          C:\Miniconda\condabin\conda.bat activate botty
+          coverage xml
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          verbose: true
+          files: ./coverage.xml

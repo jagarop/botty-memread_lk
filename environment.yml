@@ -1,0 +1,25 @@
+name: botty
+dependencies:
+  - python=3.9
+  - pywin32
+  - pip
+  - pip:
+    - pyinstaller
+    - opencv-python
+    - transitions
+    - mss
+    - numpy
+    - mouse
+    - keyboard
+    - beautifultable
+    - pytweening
+    - requests
+    - coverage
+    - pytest
+    - pytest-env
+    - pytest-pythonpath
+    - graphviz
+    - psutil
+    - cryptography
+    - pillow
+    - discord.py
